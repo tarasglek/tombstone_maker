@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <algorithm>
+#include <time.h>
 
 using namespace std;
 int main(int argc, char**argv) {
@@ -14,6 +15,9 @@ int main(int argc, char**argv) {
     fprintf(stderr, "Usage: %s /dev/urandom number_of_ids\n", argv[0]);
     exit(1);
   }
+  time_t begin_time;
+  time(&begin_time);
+
   typedef vector<uint64_t> myvec;
   myvec bigger_ids;
   long to_read = strtol(argv[2], NULL, 10);
@@ -26,7 +30,8 @@ int main(int argc, char**argv) {
     fprintf(stderr, "underflow on read() %ld != %ld\n", ret, to_read_bytes);
     exit(1);
   }
-  fprintf(stderr, "Read in %ld bytes\n", ret);
+#define TIMESTAMP() ((int)difftime(time(NULL), begin_time))
+  fprintf(stderr, "%d: Read in %ld bytes\n", TIMESTAMP(), ret);
   //for (uint64_t i = 0;i < bigger_ids.size();i++)
   //  printf("%lX\n",bigger_ids[i]); 
 
@@ -46,16 +51,16 @@ int main(int argc, char**argv) {
     exit(1);
   }
 
-  fprintf(stderr, "Sorting\n");
+  fprintf(stderr, "%d: Sorting\n", TIMESTAMP());
   std::sort(bigger_ids.begin(), bigger_ids.end());
   std::sort(incoming_ids.begin(), incoming_ids.end());
 
   myvec intersection(incoming_ids.size());
   myvec::iterator it;
-  fprintf(stderr, "Intersecting\n");  
+  fprintf(stderr, "%d: Intersecting\n", TIMESTAMP());  
   it=std::set_intersection (bigger_ids.begin(), bigger_ids.end(), incoming_ids.begin(), incoming_ids.end(),  intersection.begin());
   intersection.resize(it-intersection.begin());                      // 10 20
-  fprintf(stderr, "%ld(%ld%%) elements intersect\n", intersection.size(), intersection.size() * 100 / bigger_ids.size());
+  fprintf(stderr, "%d: %ld(%ld%%) elements intersect\n", TIMESTAMP(), intersection.size(), intersection.size() * 100 / bigger_ids.size());
 
   return 0;
 }
